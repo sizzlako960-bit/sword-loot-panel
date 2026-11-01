@@ -47,7 +47,7 @@ local bagPlus=make("TextButton","+",152)
 bagPlus.Size=UDim2.fromOffset(30,30)
 bagPlus.Position=UDim2.fromOffset(248,152)
 local reward=make("TextButton","Rewards: OFF",188)
-local rebToggle=make("TextButton","Rebirth: OFF",224)
+ 
 local clicker=make("TextButton","Clicker: OFF",260)
 local rejoinButton=make("TextButton","Auto rejoin: ON",296)
 local configBox=make("TextBox","Default",332)
@@ -108,7 +108,7 @@ local function makeSwitch(button,name)
  paintSwitch(button,false)
 end
 makeSwitch(toggle,"Farm")
-makeSwitch(rebToggle,"Rebirth")
+ 
 makeSwitch(clicker,"Autoclicker")
 makeSwitch(reward,"Rewards") makeSwitch(rejoinButton,"Auto rejoin") paintSwitch(rejoinButton,true) 
 
@@ -116,7 +116,7 @@ bagMinus.BackgroundColor3=Color3.fromRGB(190,45,45) bagPlus.BackgroundColor3=Col
 local kind=1
 local chosen=22 local bagLimit=35 
 local rewards=false
-local autoRebirth=false
+ 
 local clicking,claiming=false,false
 local input
 local clickCps=400
@@ -167,11 +167,7 @@ reward.Activated:Connect(function()
  paintSwitch(reward,rewards) 
  saveLast()
 end)
-rebToggle.Activated:Connect(function()
- autoRebirth=not autoRebirth
- paintSwitch(rebToggle,autoRebirth) 
- saveLast()
-end)
+
 stage.FocusLost:Connect(function() chosen=math.clamp(math.floor(tonumber(stage.Text) or chosen),1,36) stage.Text=tostring(chosen) saveLast() end)
 local u=game:GetService("UserInputService")
 
@@ -312,58 +308,25 @@ local function dungeon(v)
   task.wait(3)
  end
 end
-local function rebirth(v)
+local function train(v)
  ensureLobby(v)
- local attempts=0
  while live(v) do
   waitOn(v)
   if not live(v) then return end
   h=p.Character:FindFirstChildOfClass("Humanoid")
   r=p.Character.HumanoidRootPart
-  local training=Vector3.new(-80.35,154.23,320.27)
+  local training=Vector3.new(-80.40,154.23,345.39)
   local delta=r.Position-training
   if Vector3.new(delta.X,0,delta.Z).Magnitude>4 then
    walk(training,"Going to train",v,true)
    if not live(v) then return end
    stopMove()
   end
-  if autoRebirth then
-  local frame=p.PlayerGui.MainGui.Rebirth._Frame
-  local text=frame.Progress.Progress._LevelText.Text:gsub(",","")
-  local a,z=text:match("(%d+)%s*/%s*(%d+)")
-  assert(a and z,"Rebirth level?")
-  a,z=tonumber(a),tonumber(z)
-  say("Training | Rebirth "..a.."/"..z)
-  if z>0 and a>=z then
-   local q=frame:FindFirstChild("_RebirthBtn")
-   assert(q,"No rebirth control")
-   local panel=p.PlayerGui.MainGui.Rebirth
-   local shown=panel.Visible
-   claiming=true
-   panel.Visible=true
-   local worked,message=pcall(function()
-    task.wait(.25)
-    if live(v) and on and autoRebirth then
-     click(q.AbsolutePosition+q.AbsoluteSize/2+Vector2.new(0,24))
-    end
-    task.wait(.3)
-   end)
-   if panel.Parent then panel.Visible=shown end
-   claiming=false
-   assert(worked,message)
-   attempts=attempts+1
-   assert(attempts<4,"Rebirth failed")
-   task.wait(5)
-  else
-   attempts=0
-  end
-  else
-   attempts=0
-   say("Training")
-  end
+  say("Training")
   task.wait(1)
  end
 end
+
 local Http=game:GetService("HttpService")
 local store={version=1,active="Default",profiles={}}
 local file="SwordPanel-configs.json"
@@ -373,7 +336,7 @@ local function readStore(path)
 end
 store=readStore(file) or readStore(file..".bak") or store
 local function snapshot()
- return {mode=kind,stage=chosen,theme=themeName,bagLimit=bagLimit ,enabled=on,rewards=rewards,rebirth=autoRebirth,clicker=clicking,cps=clickCps,rejoin=autoRejoin,window={x=f.Position.X.Scale,ox=f.Position.X.Offset,y=f.Position.Y.Scale,oy=f.Position.Y.Offset}}
+ return {mode=kind,stage=chosen,theme=themeName,bagLimit=bagLimit ,enabled=on,rewards=rewards, clicker=clicking,cps=clickCps,rejoin=autoRejoin,window={x=f.Position.X.Scale,ox=f.Position.X.Offset,y=f.Position.Y.Scale,oy=f.Position.Y.Offset}}
 end
 local function writeStore()
  local encoded=Http:JSONEncode(store)
@@ -395,7 +358,7 @@ local function apply(data)
  kind=data.mode==2 and 2 or 1
  chosen=math.clamp(math.floor(tonumber(data.stage) or 22),1,36)
  bagLimit=math.clamp(math.floor(tonumber(data.bagLimit) or 35),1,35)  bagEntry.Text=tostring(bagLimit) rewards=data.rewards==true
- autoRebirth=data.rebirth==true
+  
  clicking=data.clicker==true
  clickCps=math.clamp(math.floor(tonumber(data.cps) or 10),1,400)
  autoRejoin=data.rejoin~=false
@@ -409,7 +372,7 @@ local function apply(data)
  mode.Text=kind==1 and "Mode: Dungeon" or "Mode: Training"
  stage.Text=tostring(chosen)
  paintSwitch(reward,rewards) 
- paintSwitch(rebToggle,autoRebirth) 
+   
  paintSwitch(clicker,clicking) 
  cpsBox.Text=tostring(clickCps)
  paintSwitch(rejoinButton,autoRejoin) 
@@ -480,7 +443,7 @@ local function row(o,y) o.Position=UDim2.fromOffset(o.Position.X.Offset,y) end
 row(toggle,80)
 row(mode,116) row(stage,152) row(stageLabel,152)
 for _,o in ipairs({bagLabel,bagMinus,bagEntry,bagPlus}) do row(o,188) end
-row(reward,80) row(rebToggle,116) row(clicker,152) row(cpsBox,152)
+row(reward,80) row(clicker,116) row(cpsBox,116) 
 row(configBox,80) row(saveButton,116) row(loadButton,116) row(profilesButton,152)
 row(rejoinButton,188) row(status,260)
 list.Position=UDim2.fromOffset(12,116)
@@ -488,11 +451,11 @@ list.Size=UDim2.fromOffset(266,140)
 profileList.Position=UDim2.fromOffset(12,80) 
 local pages={
  {toggle,mode,stage,stageLabel,bagLabel,bagMinus,bagEntry,bagPlus},
- {reward,rebToggle,clicker,cpsBox},
+ {reward,clicker,cpsBox} ,
  {configBox,saveButton,loadButton,profilesButton,rejoinButton}
 }
 local tabs={}
-local pageHeight=230 local function selectTab(n) status.Visible=false pageHeight=n==2 and 194 or (n==3 and 266 or 230)  f.Size=UDim2.fromOffset(290,pageHeight)
+local pageHeight=230 local function selectTab(n) status.Visible=false pageHeight=n==2 and 158  or (n==3 and 266 or 230)  f.Size=UDim2.fromOffset(290,pageHeight)
  list.Visible=false profileList.Visible=false
  for i,controls in ipairs(pages) do
   for _,o in ipairs(controls) do o.Visible=i==n end
@@ -670,7 +633,7 @@ task.spawn(function()
   if on and not rejoining then
    local v=version
    local ok,err=pcall(function()
-    if kind==1 then dungeon(v) else rebirth(v) end
+    if kind==1 then dungeon(v) else train(v) end 
    end)
    if live(v) and not ok then
     on=false
