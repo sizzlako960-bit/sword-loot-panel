@@ -315,7 +315,7 @@ local function train(v)
   if not live(v) then return end
   h=p.Character:FindFirstChildOfClass("Humanoid")
   r=p.Character.HumanoidRootPart
-  local training=Vector3.new(-80.40,154.23,345.39)
+  local training=Vector3.new(-62.18,154.23,394.23)
   local delta=r.Position-training
   if Vector3.new(delta.X,0,delta.Z).Magnitude>4 then
    walk(training,"Going to train",v,true)
@@ -705,6 +705,7 @@ task.spawn(function()
   task.wait()
  end
 end)
+
 
 
 
